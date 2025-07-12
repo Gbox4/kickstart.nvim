@@ -102,7 +102,7 @@ vim.g.have_nerd_font = false
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.o.relativenumber = true
+vim.o.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
@@ -298,58 +298,93 @@ require('lazy').setup({
   -- Then, because we use the `opts` key (recommended), the configuration runs
   -- after the plugin has been loaded as `require(MODULE).setup(opts)`.
 
-  { -- Useful plugin to show you pending keybinds.
-    'folke/which-key.nvim',
-    event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-    opts = {
-      -- delay between pressing a key and opening which-key (milliseconds)
-      -- this setting is independent of vim.o.timeoutlen
-      delay = 0,
-      icons = {
-        -- set icon mappings to true if you have a Nerd Font
-        mappings = vim.g.have_nerd_font,
-        -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
-        -- default which-key.nvim defined Nerd Font icons, otherwise define a string table
-        keys = vim.g.have_nerd_font and {} or {
-          Up = '<Up> ',
-          Down = '<Down> ',
-          Left = '<Left> ',
-          Right = '<Right> ',
-          C = '<C-…> ',
-          M = '<M-…> ',
-          D = '<D-…> ',
-          S = '<S-…> ',
-          CR = '<CR> ',
-          Esc = '<Esc> ',
-          ScrollWheelDown = '<ScrollWheelDown> ',
-          ScrollWheelUp = '<ScrollWheelUp> ',
-          NL = '<NL> ',
-          BS = '<BS> ',
-          Space = '<Space> ',
-          Tab = '<Tab> ',
-          F1 = '<F1>',
-          F2 = '<F2>',
-          F3 = '<F3>',
-          F4 = '<F4>',
-          F5 = '<F5>',
-          F6 = '<F6>',
-          F7 = '<F7>',
-          F8 = '<F8>',
-          F9 = '<F9>',
-          F10 = '<F10>',
-          F11 = '<F11>',
-          F12 = '<F12>',
-        },
-      },
-
-      -- Document existing key chains
-      spec = {
-        { '<leader>s', group = '[S]earch' },
-        { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-      },
-    },
+  -- MORE CUSTOM PLUGIN SHIT
+  {
+    'chentoast/marks.nvim',
+    event = 'VeryLazy',
+    opts = {},
   },
+  {
+    'folke/which-key.nvim',
+    event = 'VimEnter',
+    -- we replace `opts = { … }` with a `config = function() … end` that:
+    --  1) calls setup() with your old opts
+    --  2) then adds the extra mappings
+    config = function()
+      local wk = require 'which-key'
+      -- 1) your original opts
+      wk.setup {
+        delay = 0,
+        icons = {
+          mappings = vim.g.have_nerd_font,
+          keys = vim.g.have_nerd_font and {} or {
+            Up = '<Up> ',
+            Down = '<Down> ',
+            Left = '<Left> ',
+            Right = '<Right> ',
+            C = '<C-…> ',
+            M = '<M-…> ',
+            D = '<D-…> ',
+            S = '<S-…> ',
+            CR = '<CR> ',
+            Esc = '<Esc> ',
+            ScrollWheelDown = '<ScrollWheelDown> ',
+            ScrollWheelUp = '<ScrollWheelUp> ',
+            NL = '<NL> ',
+            BS = '<BS> ',
+            Space = '<Space> ',
+            Tab = '<Tab> ',
+            F1 = '<F1>',
+            F2 = '<F2>',
+            F3 = '<F3>',
+            F4 = '<F4>',
+            F5 = '<F5>',
+            F6 = '<F6>',
+            F7 = '<F7>',
+            F8 = '<F8>',
+            F9 = '<F9>',
+            F10 = '<F10>',
+            F11 = '<F11>',
+            F12 = '<F12>',
+          },
+        },
+        spec = {
+          -- Action groups
+          { '<leader>b', group = '[B]uffers' },
+          { '<leader>t', group = '[T]abs' },
+          { '<leader>s', group = '[S]earch' },
+          { '<leader>l', group = '[L]SP' },
+          { '<leader>g', group = '[G]it' },
+          { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+          { '<leader>d', group = '[D]ebug' },
+          { '<leader>w', group = '[W]indow' },
+          { '<leader>f', group = '[F]ile' },
+          { '<leader>c', group = '[C]ode' },
+          { '<leader>r', group = '[R]efactor' },
+          { '<leader>x', group = 'Trouble/Diagnosti[X]' },
+          { '<leader>o', group = '[O]pen/Toggle' },
+        },
+        -- you can re-enable other presets/plugins here if you like:
+        -- plugins = { windows = true, nav = true, … },
+        show_help = true, -- you can add this back if needed
+      }
+
+      -- 2) leader-based show mappings
+      vim.keymap.set('n', '<leader>?', '<cmd>WhichKey<CR>', {
+        desc = 'Show all mappings',
+        silent = true,
+      })
+
+      -- 3) global Ctrl+/? in normal, visual, insert, select
+      for _, mode in ipairs { 'n', 'v', 'i', 's' } do
+        vim.keymap.set(mode, '<C-/>', '<cmd>WhichKey<CR>', {
+          desc = 'Show all mappings',
+          silent = true,
+        })
+      end
+    end,
+  },
+  -- END CUSTOM PLUGIN SHIT
 
   -- NOTE: Plugins can specify dependencies.
   --
@@ -357,6 +392,17 @@ require('lazy').setup({
   -- you do for a plugin at the top level, you can do for a dependency.
   --
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
+
+  -- some custom plugins real quick
+  'ahmedkhalf/project.nvim',
+  {
+    'ethanholz/nvim-lastplace',
+    opts = {
+      lastplace_ignore_buftype = { 'quickfix', 'help', 'nofile', 'terminal' },
+      lastplace_ignore_filetype = { 'gitcommit', 'gitrebase', 'svn', 'hgcommit' },
+      lastplace_open_folds = true,
+    },
+  },
 
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
@@ -436,6 +482,78 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>lr', function()
+        vim.lsp.stop_client(vim.lsp.get_clients())
+      end, { desc = '[L]SP [R]estart' })
+
+      -- custom shit
+      vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
+      vim.keymap.set('n', '<leader>s<Up>', builtin.command_history, { desc = '[S]earch [Up] Command History' })
+      vim.keymap.set('n', '<leader>hk', '<cmd>help key-notation<CR>', { desc = '[H]elp: [K]ey-notation' })
+      -- more custom shit - windows tabs and buffers
+      -- keymap section
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Buffer actions
+      -- ─────────────────────────────────────────────────────────────────────────────
+      vim.keymap.set('n', '<leader>b]', '<cmd>bnext<CR>', { desc = '[B]uffer [N]ext' })
+      vim.keymap.set('n', '<leader>b[', '<cmd>bprevious<CR>', { desc = '[B]uffer [P]revious' })
+      vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = '[B]uffer [D]elete' })
+      -- Add buffer search mapping if you want it under the buffer group
+      vim.keymap.set('n', '<leader>bs', '<cmd>Telescope buffers<CR>', { desc = '[B]uffer [S]earch' })
+
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Tab actions
+      -- ─────────────────────────────────────────────────────────────────────────────
+      vim.keymap.set('n', '<leader>t]', '<cmd>tabnext<CR>', { desc = '[T]ab [N]ext' })
+      vim.keymap.set('n', '<leader>t[', '<cmd>tabprevious<CR>', { desc = '[T]ab [P]revious' })
+      vim.keymap.set('n', '<leader>to', '<cmd>tabonly<CR>', { desc = '[T]ab [O]nly (close others)' })
+      vim.keymap.set('n', '<leader>td', '<cmd>tabclose<CR>', { desc = '[T]ab [D]elete/Close' })
+
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Help/Documentation actions
+      -- ─────────────────────────────────────────────────────────────────────────────
+      vim.keymap.set('n', '<leader>hn', '<cmd>tabnew ~/notes_nvim.txt<CR>', { desc = '[H]elp [N]otes (nvim)' })
+
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Move current window into its own tab
+      -- ─────────────────────────────────────────────────────────────────────────────
+      vim.keymap.set('n', '<leader>tm', '<cmd>tab split<CR>', { desc = '[T]ab [M]ove window to new' })
+
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Move current window into another tab + split
+      --   without Shift → horizontal split
+      --   with Shift   → vertical split
+      -- ─────────────────────────────────────────────────────────────────────────────
+      local function pick_tab_and_split(side)
+        -- this uses vim.ui.select to pick from the list of existing tabs
+        local tabs = vim.api.nvim_list_tabpages()
+        local opts = {}
+        for i, tp in ipairs(tabs) do
+          local nr = vim.api.nvim_tabpage_get_number(tp)
+          opts[#opts + 1] = 'Tab ' .. nr
+        end
+        vim.ui.select(opts, { prompt = 'Pick tab to move into:' }, function(choice)
+          if not choice then
+            return
+          end
+          local target = tonumber(choice:match '%d+')
+          vim.cmd('tabnext ' .. target)
+          if side == 'vertical' then
+            vim.cmd 'vsplit'
+          else
+            vim.cmd 'split'
+          end
+        end)
+      end
+
+      vim.keymap.set('n', '<leader>ts', function()
+        pick_tab_and_split 'horizontal'
+      end, { desc = '[T]ab move to another + [S]plit horizontal' })
+      vim.keymap.set('n', '<leader>tS', function()
+        pick_tab_and_split 'vertical'
+      end, { desc = '[T]ab move to another + [S]plit vertical' })
+
+      -- end custom shit
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -619,9 +737,9 @@ require('lazy').setup({
           --
           -- This may be unwanted, since they displace some of your code
           if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
-            map('<leader>th', function()
+            map('<leader>lh', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-            end, '[T]oggle Inlay [H]ints')
+            end, '[L]SP: Toggle Inlay [H]ints')
           end
         end,
       })
