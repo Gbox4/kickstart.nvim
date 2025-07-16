@@ -166,6 +166,9 @@ vim.o.scrolloff = 10
 -- See `:help 'confirm'`
 vim.o.confirm = true
 
+-- custom shit
+vim.o.tabstop = 2
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -299,11 +302,30 @@ require('lazy').setup({
   -- after the plugin has been loaded as `require(MODULE).setup(opts)`.
 
   -- MORE CUSTOM PLUGIN SHIT
+  -- Lua
+  'tpope/vim-abolish',
+  {
+    'folke/persistence.nvim',
+    event = 'BufReadPre', -- this will only start session saving when an actual file was opened
+    opts = {
+      -- add any custom options here
+    },
+  },
   {
     'chentoast/marks.nvim',
     event = 'VeryLazy',
     opts = {},
   },
+  -- some custom plugins real quick
+  'ahmedkhalf/project.nvim',
+  -- {
+  --   'ethanholz/nvim-lastplace',
+  --   opts = {
+  --     lastplace_ignore_buftype = { 'quickfix', 'help', 'nofile', 'terminal' },
+  --     lastplace_ignore_filetype = { 'gitcommit', 'gitrebase', 'svn', 'hgcommit' },
+  --     lastplace_open_folds = true,
+  --   },
+  -- },
   {
     'folke/which-key.nvim',
     event = 'VimEnter',
@@ -351,18 +373,15 @@ require('lazy').setup({
         spec = {
           -- Action groups
           { '<leader>b', group = '[B]uffers' },
+          { '<leader>g', group = '[G]it' },
+          { '<leader>gf', group = '[G]it [F]ile' },
           { '<leader>t', group = '[T]abs' },
           { '<leader>s', group = '[S]earch' },
+          { '<leader>q', group = 'Persistence [Q]uit behavior' },
           { '<leader>l', group = '[L]SP' },
-          { '<leader>g', group = '[G]it' },
-          { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-          { '<leader>d', group = '[D]ebug' },
+          { '<leader>h', group = '[H]elp', mode = { 'n', 'v' } },
           { '<leader>w', group = '[W]indow' },
-          { '<leader>f', group = '[F]ile' },
-          { '<leader>c', group = '[C]ode' },
-          { '<leader>r', group = '[R]efactor' },
-          { '<leader>x', group = 'Trouble/Diagnosti[X]' },
-          { '<leader>o', group = '[O]pen/Toggle' },
+          { '<leader>f', group = '[F]ormat' },
         },
         -- you can re-enable other presets/plugins here if you like:
         -- plugins = { windows = true, nav = true, … },
@@ -392,17 +411,6 @@ require('lazy').setup({
   -- you do for a plugin at the top level, you can do for a dependency.
   --
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
-
-  -- some custom plugins real quick
-  'ahmedkhalf/project.nvim',
-  {
-    'ethanholz/nvim-lastplace',
-    opts = {
-      lastplace_ignore_buftype = { 'quickfix', 'help', 'nofile', 'terminal' },
-      lastplace_ignore_filetype = { 'gitcommit', 'gitrebase', 'svn', 'hgcommit' },
-      lastplace_open_folds = true,
-    },
-  },
 
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
@@ -498,6 +506,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>b]', '<cmd>bnext<CR>', { desc = '[B]uffer [N]ext' })
       vim.keymap.set('n', '<leader>b[', '<cmd>bprevious<CR>', { desc = '[B]uffer [P]revious' })
       vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = '[B]uffer [D]elete' })
+      vim.keymap.set('n', '<leader>bo', '<cmd>%bdelete|edit#|bdelete#<CR>', { desc = '[B]uffer [O]nly (close others)' })
       -- Add buffer search mapping if you want it under the buffer group
       vim.keymap.set('n', '<leader>bs', '<cmd>Telescope buffers<CR>', { desc = '[B]uffer [S]earch' })
 
@@ -552,6 +561,149 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>tS', function()
         pick_tab_and_split 'vertical'
       end, { desc = '[T]ab move to another + [S]plit vertical' })
+
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Git actions
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Git hunks (line changes) navigation
+      vim.keymap.set('n', '<leader>g]', function()
+        if vim.wo.diff then
+          vim.cmd.normal { ']c', bang = true }
+        else
+          require('gitsigns').nav_hunk 'next'
+        end
+      end, { desc = '[G]it hunk [N]ext' })
+
+      vim.keymap.set('n', '<leader>g[', function()
+        if vim.wo.diff then
+          vim.cmd.normal { '[c', bang = true }
+        else
+          require('gitsigns').nav_hunk 'prev'
+        end
+      end, { desc = '[G]it hunk [P]revious' })
+
+      -- This cycles through all files with changes in the repository
+      vim.keymap.set('n', '<leader>gf]', function()
+        -- Get list of changed files and navigate to next
+        local function next_changed_file()
+          local handle = io.popen 'git diff --name-only'
+          if handle then
+            local files = {}
+            for file in handle:lines() do
+              table.insert(files, file)
+            end
+            handle:close()
+
+            if #files > 0 then
+              local current = vim.fn.expand '%:.'
+              local current_idx = 0
+              for i, file in ipairs(files) do
+                if file == current then
+                  current_idx = i
+                  break
+                end
+              end
+
+              local next_idx = current_idx % #files + 1
+              vim.cmd('edit ' .. files[next_idx])
+            end
+          end
+        end
+        next_changed_file()
+      end, { desc = '[G]it [F]ile [N]ext changed' })
+
+      vim.keymap.set('n', '<leader>gf[', function()
+        -- Get list of changed files and navigate to previous
+        local function prev_changed_file()
+          local handle = io.popen 'git diff --name-only'
+          if handle then
+            local files = {}
+            for file in handle:lines() do
+              table.insert(files, file)
+            end
+            handle:close()
+
+            if #files > 0 then
+              local current = vim.fn.expand '%:.'
+              local current_idx = 1
+              for i, file in ipairs(files) do
+                if file == current then
+                  current_idx = i
+                  break
+                end
+              end
+
+              local prev_idx = current_idx - 1
+              if prev_idx < 1 then
+                prev_idx = #files
+              end
+              vim.cmd('edit ' .. files[prev_idx])
+            end
+          end
+        end
+        prev_changed_file()
+      end, { desc = '[G]it [F]ile [P]revious changed' })
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Git hunk start/end navigation
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Jump to beginning of current hunk
+      vim.keymap.set('n', '<leader>gb', function()
+        local gs = require 'gitsigns'
+        -- Navigate to current hunk start by going to previous then next
+        gs.nav_hunk('prev', { target = 'all', navigation_options = { wrap = false } })
+        gs.nav_hunk('next', { target = 'all', navigation_options = { wrap = false } })
+        -- Move to first non-blank character of the line
+        vim.cmd 'normal! ^'
+      end, { desc = '[G]it hunk [B]eginning' })
+
+      -- Jump to start of next hunk (word-like motion)
+      vim.keymap.set('n', '<leader>gw', function()
+        require('gitsigns').nav_hunk('next', { target = 'all' })
+        vim.cmd 'normal! ^'
+      end, { desc = '[G]it next hunk start ([W]ord-like)' })
+
+      -- Alternative: Visual select entire hunk (bonus)
+      vim.keymap.set('n', '<leader>gv', function()
+        require('gitsigns').select_hunk()
+      end, { desc = '[G]it [V]isual select hunk' })
+
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Persistence (session saving + loading)
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- load the session for the current directory
+      vim.keymap.set('n', '<leader>qs', function()
+        require('persistence').load()
+      end, { desc = '[Q]uit [s]ession load for current directory' })
+
+      -- select a session to load
+      vim.keymap.set('n', '<leader>qS', function()
+        require('persistence').select()
+      end, { desc = '[Q]uit [S]ession selection to load' })
+
+      -- load the last session
+      vim.keymap.set('n', '<leader>ql', function()
+        require('persistence').load { last = true }
+      end, { desc = '[Q]uit [L]ast session restore' })
+
+      -- stop Persistence => session won't be saved on exit
+      vim.keymap.set('n', '<leader>qd', function()
+        require('persistence').stop()
+      end, { desc = '[Q]uit and [d]elete current session' })
+
+      -- more custom misc bullshit
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Show diagnostic info under cursor with Shift-J
+      -- ─────────────────────────────────────────────────────────────────────────────
+      vim.keymap.set('n', 'J', function()
+        vim.diagnostic.open_float(nil, {
+          focusable = false,
+          close_events = { 'BufLeave', 'CursorMoved', 'InsertEnter', 'FocusLost' },
+          border = 'rounded',
+          source = 'always',
+          prefix = ' ',
+          scope = 'cursor',
+        })
+      end, { desc = 'Show diagnostics under cursor' })
 
       -- end custom shit
 
