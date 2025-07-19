@@ -202,6 +202,11 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+vim.api.nvim_set_keymap('n', '<leader>55', ':lua require("jump-tag").jumpParent()<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>5n', ':lua require("jump-tag").jumpNextSibling()<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>5p', ':lua require("jump-tag").jumpPrevSibling()<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>5c', ':lua require("jump-tag").jumpChild()<CR>', { noremap = true, silent = true })
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -303,6 +308,7 @@ require('lazy').setup({
 
   -- MORE CUSTOM PLUGIN SHIT
   -- Lua
+  'harrisoncramer/jump-tag',
   'tpope/vim-abolish',
   {
     'folke/persistence.nvim',
@@ -490,182 +496,75 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
-      vim.keymap.set('n', '<leader>lr', function()
-        vim.lsp.stop_client(vim.lsp.get_clients())
-      end, { desc = '[L]SP [R]estart' })
-
       -- custom shit
       vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
       vim.keymap.set('n', '<leader>s<Up>', builtin.command_history, { desc = '[S]earch [Up] Command History' })
       vim.keymap.set('n', '<leader>hk', '<cmd>help key-notation<CR>', { desc = '[H]elp: [K]ey-notation' })
+      vim.keymap.set('n', '<leader>si', builtin.diagnostics, { desc = '[S]earch D[i]agnostics' })
+      vim.keymap.set('n', '<leader>su', builtin.git_status, { desc = '[S]earch Git Stat[u]s' })
+      vim.keymap.set('n', '<leader>sb', builtin.git_bcommits, { desc = '[S]earch Git [B]uffer Commit History' })
+      vim.keymap.set('n', '<leader>so', builtin.git_commits, { desc = '[S]earch Git C[o]mmit History' })
+      vim.keymap.set('n', '<leader>sm', builtin.marks, { desc = '[S]earch [M]arks' })
+      vim.keymap.set('n', '<leader>st', '<cmd>Telescope telescope-tabs list_tabs<CR>', { desc = '[S]earch [T]abs' })
+      vim.keymap.set('n', '<leader>s"', builtin.marks, { desc = '[S]earch ["] registers' })
+      vim.keymap.set('n', '<leader>s1', builtin.marks, { desc = '[S]earch Planets...' })
       -- more custom shit - windows tabs and buffers
       -- keymap section
       -- ─────────────────────────────────────────────────────────────────────────────
       -- Buffer actions
-      -- ─────────────────────────────────────────────────────────────────────────────
-      vim.keymap.set('n', '<leader>b]', '<cmd>bnext<CR>', { desc = '[B]uffer [N]ext' })
-      vim.keymap.set('n', '<leader>b[', '<cmd>bprevious<CR>', { desc = '[B]uffer [P]revious' })
+      vim.keymap.set('n', '<leader>b]', '<cmd>bnext<CR>', { desc = '[B]uffer Next' })
+      vim.keymap.set('n', '<leader>b[', '<cmd>bprevious<CR>', { desc = '[B]uffer Previous' })
       vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = '[B]uffer [D]elete' })
       vim.keymap.set('n', '<leader>bo', '<cmd>%bdelete|edit#|bdelete#<CR>', { desc = '[B]uffer [O]nly (close others)' })
-      -- Add buffer search mapping if you want it under the buffer group
       vim.keymap.set('n', '<leader>bs', '<cmd>Telescope buffers<CR>', { desc = '[B]uffer [S]earch' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
       -- Tab actions
-      -- ─────────────────────────────────────────────────────────────────────────────
-      vim.keymap.set('n', '<leader>t]', '<cmd>tabnext<CR>', { desc = '[T]ab [N]ext' })
-      vim.keymap.set('n', '<leader>t[', '<cmd>tabprevious<CR>', { desc = '[T]ab [P]revious' })
+      vim.keymap.set('n', '<leader>t]', '<cmd>tabnext<CR>', { desc = '[T]ab Next' })
+      vim.keymap.set('n', '<leader>t[', '<cmd>tabprevious<CR>', { desc = '[T]ab Previous' })
       vim.keymap.set('n', '<leader>to', '<cmd>tabonly<CR>', { desc = '[T]ab [O]nly (close others)' })
       vim.keymap.set('n', '<leader>td', '<cmd>tabclose<CR>', { desc = '[T]ab [D]elete/Close' })
+      vim.keymap.set('n', '<leader>tn', '<cmd>tabedit %<CR>', { desc = '[T]ab [N]ew' })
+
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- Window actions
+      vim.keymap.set('n', '<leader>w]', '<C-w>w', { desc = '[W]indow Next' })
+      vim.keymap.set('n', '<leader>w[', '<C-w>W', { desc = '[W]indow Previous' })
+      vim.keymap.set('n', '<leader>wo', '<cmd>only<CR>', { desc = '[W]indow [O]nly (close others)' })
+      vim.keymap.set('n', '<leader>wd', '<cmd>close<CR>', { desc = '[W]indow [D]elete' })
+      -- function to pick a buffer and open it in a vertical split
+      local function vsplit_buffer()
+        builtin.buffers {
+          attach_mappings = function(prompt_bufnr, map)
+            -- replace the default <CR> action
+            actions.select_default:replace(function()
+              local selection = action_state.get_selected_entry()
+              actions.close(prompt_bufnr)
+              vim.cmd('vertical sbuffer ' .. selection.bufnr)
+            end)
+            return true
+          end,
+        }
+      end
+
+      -- keybind it however you like; for example:
+      vim.keymap.set('n', '<leader>sv', vsplit_buffer, { desc = '[S]elect buffer and [V]ertical split' })
+
+      vim.keymap.set('n', '<leader>dm', '<cmd>delmarks A-Z0-9<CR>', { desc = '[D]elete [M]arks' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
       -- Help/Documentation actions
-      -- ─────────────────────────────────────────────────────────────────────────────
       vim.keymap.set('n', '<leader>hn', '<cmd>tabnew ~/notes_nvim.txt<CR>', { desc = '[H]elp [N]otes (nvim)' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
-      -- Move current window into its own tab
-      -- ─────────────────────────────────────────────────────────────────────────────
-      vim.keymap.set('n', '<leader>tm', '<cmd>tab split<CR>', { desc = '[T]ab [M]ove window to new' })
+      -- Git/hunk‐navigation (requires gitsigns.nvim)
+      vim.keymap.set('n', '<leader>gw', '<cmd>Gitsigns next_hunk<CR>', { desc = '[G]it [W] next hunk' })
+      vim.keymap.set('n', '<leader>gb', '<cmd>Gitsigns prev_hunk<CR>', { desc = '[G]it [B] previous hunk' })
+      vim.keymap.set('n', '<leader>ge', '<cmd>Gitsigns preview_hunk<CR>', { desc = '[G]it [E] preview hunk' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
-      -- Move current window into another tab + split
-      --   without Shift → horizontal split
-      --   with Shift   → vertical split
-      -- ─────────────────────────────────────────────────────────────────────────────
-      local function pick_tab_and_split(side)
-        -- this uses vim.ui.select to pick from the list of existing tabs
-        local tabs = vim.api.nvim_list_tabpages()
-        local opts = {}
-        for i, tp in ipairs(tabs) do
-          local nr = vim.api.nvim_tabpage_get_number(tp)
-          opts[#opts + 1] = 'Tab ' .. nr
-        end
-        vim.ui.select(opts, { prompt = 'Pick tab to move into:' }, function(choice)
-          if not choice then
-            return
-          end
-          local target = tonumber(choice:match '%d+')
-          vim.cmd('tabnext ' .. target)
-          if side == 'vertical' then
-            vim.cmd 'vsplit'
-          else
-            vim.cmd 'split'
-          end
-        end)
-      end
-
-      vim.keymap.set('n', '<leader>ts', function()
-        pick_tab_and_split 'horizontal'
-      end, { desc = '[T]ab move to another + [S]plit horizontal' })
-      vim.keymap.set('n', '<leader>tS', function()
-        pick_tab_and_split 'vertical'
-      end, { desc = '[T]ab move to another + [S]plit vertical' })
-
-      -- ─────────────────────────────────────────────────────────────────────────────
-      -- Git actions
-      -- ─────────────────────────────────────────────────────────────────────────────
-      -- Git hunks (line changes) navigation
-      vim.keymap.set('n', '<leader>g]', function()
-        if vim.wo.diff then
-          vim.cmd.normal { ']c', bang = true }
-        else
-          require('gitsigns').nav_hunk 'next'
-        end
-      end, { desc = '[G]it hunk [N]ext' })
-
-      vim.keymap.set('n', '<leader>g[', function()
-        if vim.wo.diff then
-          vim.cmd.normal { '[c', bang = true }
-        else
-          require('gitsigns').nav_hunk 'prev'
-        end
-      end, { desc = '[G]it hunk [P]revious' })
-
-      -- This cycles through all files with changes in the repository
-      vim.keymap.set('n', '<leader>gf]', function()
-        -- Get list of changed files and navigate to next
-        local function next_changed_file()
-          local handle = io.popen 'git diff --name-only'
-          if handle then
-            local files = {}
-            for file in handle:lines() do
-              table.insert(files, file)
-            end
-            handle:close()
-
-            if #files > 0 then
-              local current = vim.fn.expand '%:.'
-              local current_idx = 0
-              for i, file in ipairs(files) do
-                if file == current then
-                  current_idx = i
-                  break
-                end
-              end
-
-              local next_idx = current_idx % #files + 1
-              vim.cmd('edit ' .. files[next_idx])
-            end
-          end
-        end
-        next_changed_file()
-      end, { desc = '[G]it [F]ile [N]ext changed' })
-
-      vim.keymap.set('n', '<leader>gf[', function()
-        -- Get list of changed files and navigate to previous
-        local function prev_changed_file()
-          local handle = io.popen 'git diff --name-only'
-          if handle then
-            local files = {}
-            for file in handle:lines() do
-              table.insert(files, file)
-            end
-            handle:close()
-
-            if #files > 0 then
-              local current = vim.fn.expand '%:.'
-              local current_idx = 1
-              for i, file in ipairs(files) do
-                if file == current then
-                  current_idx = i
-                  break
-                end
-              end
-
-              local prev_idx = current_idx - 1
-              if prev_idx < 1 then
-                prev_idx = #files
-              end
-              vim.cmd('edit ' .. files[prev_idx])
-            end
-          end
-        end
-        prev_changed_file()
-      end, { desc = '[G]it [F]ile [P]revious changed' })
-      -- ─────────────────────────────────────────────────────────────────────────────
-      -- Git hunk start/end navigation
-      -- ─────────────────────────────────────────────────────────────────────────────
-      -- Jump to beginning of current hunk
-      vim.keymap.set('n', '<leader>gb', function()
-        local gs = require 'gitsigns'
-        -- Navigate to current hunk start by going to previous then next
-        gs.nav_hunk('prev', { target = 'all', navigation_options = { wrap = false } })
-        gs.nav_hunk('next', { target = 'all', navigation_options = { wrap = false } })
-        -- Move to first non-blank character of the line
-        vim.cmd 'normal! ^'
-      end, { desc = '[G]it hunk [B]eginning' })
-
-      -- Jump to start of next hunk (word-like motion)
-      vim.keymap.set('n', '<leader>gw', function()
-        require('gitsigns').nav_hunk('next', { target = 'all' })
-        vim.cmd 'normal! ^'
-      end, { desc = '[G]it next hunk start ([W]ord-like)' })
-
-      -- Alternative: Visual select entire hunk (bonus)
-      vim.keymap.set('n', '<leader>gv', function()
-        require('gitsigns').select_hunk()
-      end, { desc = '[G]it [V]isual select hunk' })
+      -- LSP actions
+      vim.keymap.set('n', '<leader>lr', '<cmd>LspRestart<CR>', { desc = '[L]SP [R]estart' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
       -- Persistence (session saving + loading)
@@ -730,6 +629,17 @@ require('lazy').setup({
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
     end,
+  },
+  {
+    'LukasPietzschmann/telescope-tabs',
+    config = function()
+      require('telescope').load_extension 'telescope-tabs'
+      require('telescope-tabs').setup {
+        -- Your custom config :^)
+        vim.keymap.set('n', '<leader>wl', require('telescope-tabs').go_to_previous, { desc = '[T]ab [L]ast' }),
+      }
+    end,
+    dependencies = { 'nvim-telescope/telescope.nvim' },
   },
 
   -- LSP Plugins
