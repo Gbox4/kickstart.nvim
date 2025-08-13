@@ -516,7 +516,6 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>b[', '<cmd>bprevious<CR>', { desc = '[B]uffer Previous' })
       vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = '[B]uffer [D]elete' })
       vim.keymap.set('n', '<leader>bo', '<cmd>%bdelete|edit#|bdelete#<CR>', { desc = '[B]uffer [O]nly (close others)' })
-      vim.keymap.set('n', '<leader>bs', '<cmd>Telescope buffers<CR>', { desc = '[B]uffer [S]earch' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
       -- Tab actions
@@ -532,24 +531,8 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>w[', '<C-w>W', { desc = '[W]indow Previous' })
       vim.keymap.set('n', '<leader>wo', '<cmd>only<CR>', { desc = '[W]indow [O]nly (close others)' })
       vim.keymap.set('n', '<leader>wd', '<cmd>close<CR>', { desc = '[W]indow [D]elete' })
-      -- function to pick a buffer and open it in a vertical split
-      local function vsplit_buffer()
-        builtin.buffers {
-          attach_mappings = function(prompt_bufnr, map)
-            -- replace the default <CR> action
-            actions.select_default:replace(function()
-              local selection = action_state.get_selected_entry()
-              actions.close(prompt_bufnr)
-              vim.cmd('vertical sbuffer ' .. selection.bufnr)
-            end)
-            return true
-          end,
-        }
-      end
 
-      -- keybind it however you like; for example:
-      vim.keymap.set('n', '<leader>sv', vsplit_buffer, { desc = '[S]elect buffer and [V]ertical split' })
-
+      -- Marks
       vim.keymap.set('n', '<leader>dm', '<cmd>delmarks A-Z0-9<CR>', { desc = '[D]elete [M]arks' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
@@ -558,9 +541,9 @@ require('lazy').setup({
 
       -- ─────────────────────────────────────────────────────────────────────────────
       -- Git/hunk‐navigation (requires gitsigns.nvim)
-      vim.keymap.set('n', '<leader>gw', '<cmd>Gitsigns next_hunk<CR>', { desc = '[G]it [W] next hunk' })
-      vim.keymap.set('n', '<leader>gb', '<cmd>Gitsigns prev_hunk<CR>', { desc = '[G]it [B] previous hunk' })
-      vim.keymap.set('n', '<leader>ge', '<cmd>Gitsigns preview_hunk<CR>', { desc = '[G]it [E] preview hunk' })
+      vim.keymap.set('n', '<leader>gw', '<cmd>Gitsigns next_hunk<CR>', { desc = '[G]it [W]ord next hunk' })
+      vim.keymap.set('n', '<leader>gb', '<cmd>Gitsigns prev_hunk<CR>', { desc = '[G]it [B]ack previous hunk' })
+      vim.keymap.set('n', '<leader>ge', '<cmd>Gitsigns preview_hunk<CR>', { desc = '[G]it [E]nd current hunk' })
 
       -- ─────────────────────────────────────────────────────────────────────────────
       -- LSP actions
