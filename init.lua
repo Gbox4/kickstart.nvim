@@ -209,6 +209,7 @@ vim.keymap.set('n', '<leader>5c', ':lua require("jump-tag").jumpChild()<CR>', { 
 
 vim.keymap.set('n', '<leader>gt', ':DiffviewFileHistory<CR>', { noremap = true, silent = true, desc = '[G]it [T]ree' })
 vim.keymap.set('n', '<leader>gd', ':DiffviewOpen<CR>', { noremap = true, silent = true, desc = '[G]it [D]iff' })
+vim.keymap.set('n', '<leader>gf', ':DiffviewFileHistory %<CR>', { noremap = true, silent = true, desc = '[G]it [F]ile history' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
