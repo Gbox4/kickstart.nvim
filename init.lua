@@ -623,7 +623,7 @@ require('lazy').setup({
       require('telescope').load_extension 'telescope-tabs'
       require('telescope-tabs').setup {
         -- Your custom config :^)
-        vim.keymap.set('n', '<leader>wl', require('telescope-tabs').go_to_previous, { desc = '[T]ab [L]ast' }),
+        vim.keymap.set('n', '<leader>tl', require('telescope-tabs').go_to_previous, { desc = '[T]ab [L]ast' }),
       }
     end,
     dependencies = { 'nvim-telescope/telescope.nvim' },
