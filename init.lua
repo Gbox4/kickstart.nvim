@@ -202,10 +202,13 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
-vim.api.nvim_set_keymap('n', '<leader>55', ':lua require("jump-tag").jumpParent()<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>5n', ':lua require("jump-tag").jumpNextSibling()<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>5p', ':lua require("jump-tag").jumpPrevSibling()<CR>', { noremap = true, silent = true })
-vim.api.nvim_set_keymap('n', '<leader>5c', ':lua require("jump-tag").jumpChild()<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<leader>55', ':lua require("jump-tag").jumpParent()<CR>', { noremap = true, silent = true, desc = '[55] parent tag' })
+vim.keymap.set('n', '<leader>5n', ':lua require("jump-tag").jumpNextSibling()<CR>', { noremap = true, silent = true, desc = '[5] [n]ext HTML tag' })
+vim.keymap.set('n', '<leader>5p', ':lua require("jump-tag").jumpPrevSibling()<CR>', { noremap = true, silent = true, desc = '[5] [p]revious HTML tag' })
+vim.keymap.set('n', '<leader>5c', ':lua require("jump-tag").jumpChild()<CR>', { noremap = true, silent = true, desc = '[5] [c]hild tag' })
+
+vim.keymap.set('n', '<leader>gt', ':DiffviewFileHistory<CR>', { noremap = true, silent = true, desc = '[G]it [T]ree' })
+vim.keymap.set('n', '<leader>gd', ':DiffviewOpen<CR>', { noremap = true, silent = true, desc = '[G]it [D]iff' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -324,6 +327,7 @@ require('lazy').setup({
   },
   -- some custom plugins real quick
   'ahmedkhalf/project.nvim',
+  'sindrets/diffview.nvim',
   -- {
   --   'ethanholz/nvim-lastplace',
   --   opts = {
@@ -1057,7 +1061,7 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      -- vim.cmd.colorscheme 'tokyonight-night'
     end,
   },
 
