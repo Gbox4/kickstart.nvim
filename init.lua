@@ -641,6 +641,11 @@ require('lazy').setup({
     end,
     dependencies = { 'nvim-telescope/telescope.nvim' },
   },
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    config = true,
+  },
 
   -- LSP Plugins
   {
